@@ -29,20 +29,19 @@ include("typedefs.jl")
 #  return userinputs(Nx,Nt,cry,sigma_t,sigma_x,lambda0,I0,STR,gamma,dz,z_end,x,t)
 #end
 
-enu
+@enum CRYSTAL LN = 0 ZnTe = 2 GaAs = 4
 
 @kwdef struct userinputs
-  Nx::Int = 2048
-  Nt::Int = 1024
-  cry::Int = 
-  sigma_t::Float64
-  sigma_x::Float64
-  lambda0::Float64
-  I0::Float64
-  STR::String
-  gamma::Float64
-  dz::Float64
-  z_end::Float64
-  x::Vector
-  t::Vector
+  Nx::Int = 512
+  Nt::Int = 512
+  cry::Int = GaAs
+  sigma_t::Float64 = 1e-12
+  sigma_x::Float64 = 1e-3
+  lambda0::Float64 = 1030e-9
+  I0::Float64 = 50e13
+  STR::String = "test_calculation"
+  dz::Float64 = 1e-6
+  z_end::Float64 = 1e-3
+  x::Vector = range(-sigma_x, sigma_x, Nx) * 8
+  t::Vector = range(-sigma_t, sigma_t, Nt) * 8
 end

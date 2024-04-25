@@ -1,22 +1,6 @@
 import Base.+, Base.*, Base./
 
-struct userinputs
-  Nx::Int
-  Nt::Int
-  cry::Int
-  sigma_t::Float64
-  sigma_x::Float64
-  lambda0::Float64
-  I0::Float64
-  STR::String
-  gamma::Float64
-  dz::Float64
-  z_end::Float64
-  x::Vector
-  t::Vector
-end
-
-struct gaussVars
+@kwdef struct gaussVars
   E0::Float64
   t::Array{Float64,2}
   sigma_t::Float64
@@ -28,7 +12,7 @@ struct gaussVars
   cry::Int
 end
 
-mutable struct compositeInput
+@kwdef struct compositeInput
   Akxo::Array{ComplexF64,2}
   ATHz_kx_o::Array{ComplexF64,2}
   ASH::Array{ComplexF64,2}
@@ -56,7 +40,7 @@ function /(a::compositeInput, b::Int)
   return compositeInput(a.Akxo ./ b, a.ATHz_kx_o ./ b, a.ASH ./ b)
 end
 
-struct fourierOperations
+@kwdef struct fourierOperations
   fft_t_o
   fft_x_kx
   ifft_o_t
@@ -65,7 +49,7 @@ struct fourierOperations
   fast_conv_fft_plan
 end
 
-struct naturalConstants
+@kwdef struct naturalConstants
   e0::Float64
   c0::Float64
   function naturalConstants()
@@ -73,22 +57,20 @@ struct naturalConstants
   end
 end
 
-struct pumpFieldConstants
-  kx_omega::Array{Float64,2}
+@kwdef struct pumpFieldConstants
   kz_omega::Array{Float64,2}
 end
 
-struct THzFieldConstants
+@kwdef struct THzFieldConstants
   alpha::Array{Float64,2}
   kz_omegaTHz::Array{Float64,2}
 end
 
-struct SHFieldConstants
-  kx_omegaSHG::Array{Float64,2}
+@kwdef struct SHFieldConstants
   kz_omegaSHG::Array{Float64,2}
 end
 
-struct runTimeConstants
+@kwdef struct runTimeConstants
   kxMax::Float64
   cx::Array{Float64,2}
   d_eff::Float64
@@ -106,11 +88,10 @@ struct runTimeConstants
   cry::Int
 end
 
-struct miscInputs
+@kwdef struct miscInputs
   FOPS::fourierOperations
   NC::naturalConstants
   RTC::runTimeConstants
-  TFC::THzFieldConstants
   PFC::pumpFieldConstants
   SFC::SHFieldConstants
 end
