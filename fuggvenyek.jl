@@ -5,25 +5,9 @@ function heaviside(t)
   return @. 0.5 * (sign(t) + 1)
 end
 
-function interp1(xpt, ypt, x; method="linear", extrapvalue=nothing)
-  if extrapvalue == nothing
-    y = zeros(x)
-    idx = trues(x)
-  else
-    y = extrapvalue * ones(x)
-    idx = (x .>= xpt[1]) .& (x .<= xpt[end])
-  end
-
-  if method == "linear"
-    intf = interpolate((xpt,), ypt, Gridded(Linear()))
-    y[idx] = intf[x[idx]]
-
-  elseif method == "cubic"
-    itp = interpolate(ypt, BSpline(Cubic(Natural())), OnGrid())
-    intf = scale(itp, xpt)
-    y[idx] = [intf[xi] for xi in x[idx]]
-  end
-  return y
+function interp1(x_original::Vector,y_original::Vector,x_query::Float64)
+  itp = linear_interpolation(x_original,y_original)
+  return itp(x_query)
 end
 
 function deffTHz(cry)
@@ -197,7 +181,8 @@ function n2pair(cry)
   end
 end
 
-function G2(x)
+function G2(X)
+  x = @. Complex(X)
   return @. (-2 + 6 * x - 3 * x .^ 2 - x .^ 3 - 3 / 4 * x .^ 4 - 3 / 4 * x .^ 5 + 2 * (1 - 2 * x) .^ (1.5) .* heaviside(1 - 2 * x)) ./ (64 * x .^ 6)
 end
 
@@ -206,15 +191,15 @@ function n2_wld(lambda1, cry)
   hv = 6.626e-34 / 2 / pi
   Eg = Egp(cry) * 1.60217663e-19
   lambda0, n20 = n2pair(cry)
-  omega0 = 2 * pi * NC.c0
+  omega0 = 2 * pi * NC.c0 / lambda0
   n2ref = 40 * pi * n20 / NC.c0 / neo(lambda0, 300, cry)
 
   N = 100
 
-  omega = range(start=0.05 * Eg / hv, stop=0.95 * Eg / hv, length=N)
-  lambda = @. 2 * pi * NC / omega
+  omega = collect(range(start=0.05 * Eg / hv, stop=0.95 * Eg / hv, length=N))
+  lambda = @. 2 * pi * NC.c0 / omega
 
-  n2su_ = G2(hv * omega / Eg) / neo(lambda, 300, cry)
+  n2su_ =@. G2(hv * omega / Eg) / neo(lambda, 300, cry)
   n2_ = @. n2su_ / neo(lambda, 300, cry)^2
 
   K = n2ref / interp1(omega, n2_, omega0)

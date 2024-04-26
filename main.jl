@@ -75,7 +75,7 @@ function runcalc()
   Axt = gauss_impulzus_omega0(gaussInput)
 
   padding = zeros(inputs.Nt, inputs.Nx)
-  RTC = runTimeConstantsZSCAN(cx=cx, d_eff=d_eff, dOmega=dOmega, padding=padding, SHG_SHIFT=SHG_SHIFT, ckx=ckx, comega=comega, comegaSHG=comegaSHG, omegaMax=omegaMax, lambda0=lambda0, omega0=omega0, cry=inputs.cry, m_eff=m_eff, Erinf=Erinf, tsc=tsc, n2=n2)
+  RTC = runTimeConstantsZSCAN(kxMax=kxMax, cx=cx, d_eff=d_eff, dOmega=dOmega, padding=padding, SHG_SHIFT=SHG_SHIFT, ckx=ckx, comega=comega, comegaSHG=comegaSHG, omegaMax=omegaMax, lambda0=lambda0, omega0=omega0, cry=inputs.cry, m_eff=m_eff, Erinf=Erinf, tsc=tsc, n2=n2)
   PFC = pumpFieldConstants(kz_omega=k_omega)
   SFC = SHFieldConstants(kz_omegaSHG=k_omegaSHG)
 

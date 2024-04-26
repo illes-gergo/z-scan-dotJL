@@ -102,13 +102,11 @@ function thz_feedback(t, Y)
 end
 
 function n2calc(t, Aop, misc::miscInputs)
-  mult1 = @spawn -2 .* misc.PFC.kz_omega .* misc.NC.e0 .* misc.NC.c0 .^ 2 ./ misc.RTC.comega .^ 2
-  Eop = @spawn misc.FOPS.ifft_o_t * ifftshift(misc.FOPS.ifft_kx_x * ifftshift(Aop, 2) * misc.RTC.kxMax .* exp.(-1im .* misc.PFC.kx_omega .* misc.RTC.cx - 1im .* misc.PFC.kz_omega .* t), 1) * misc.RTC.omegaMax
-  mult2 = misc.NC.e0 * misc.RTC.omega0 * neo(misc.RTC.lambda0, 300, misc.RTC.cry) * n2value(misc.RTC.cry) / 2
-  wait(Eop)
-  aEop2 = abs.(Eop.result) .^ 2
-  wait(mult1)
-  return fftshift(misc.FOPS.fft_x_kx * (mult1.result .* fftshift(misc.FOPS.fft_t_o * (mult2 .* aEop2 .* Eop.result), 1) ./ misc.RTC.omegaMax .* exp.(+1im .* misc.PFC.kx_omega .* misc.RTC.cx) ./ misc.RTC.kxMax), 2)
+  mult1 = -2 .* misc.PFC.kz_omega .* misc.NC.e0 .* misc.NC.c0 .^ 2 ./ misc.RTC.comega .^ 2
+  Eop = misc.FOPS.ifft_o_t * ifftshift(misc.FOPS.ifft_kx_x * ifftshift(Aop, 2) * misc.RTC.kxMax .* exp.(-1im .* misc.PFC.kz_omega .* t), 1) * misc.RTC.omegaMax
+  mult2 = misc.NC.e0 * misc.RTC.omega0 * neo(misc.RTC.lambda0, 300, misc.RTC.cry) * misc.RTC.n2 / 2
+  aEop2 = abs.(Eop) .^ 2
+  return fftshift(misc.FOPS.fft_x_kx * (mult1 .* fftshift(misc.FOPS.fft_t_o * (mult2 .* aEop2 .* Eop), 1) ./ misc.RTC.omegaMax ./ misc.RTC.kxMax), 2)
 end
 
 function thz_feedback_n2(t, Y)
@@ -177,6 +175,10 @@ end
 
 function z_scan_MPA(t, Y::zscanInput, misc::miscInputs)
   dAop_lin = imp_terjedes_coll(t, Y.Akxo, misc.PFC, misc.RTC)
+  dAopn2 = n2calc(t,Y.Akxo, misc)
 
-  return zscanInput(dAop_lin, Y.ASH)
+  dAopNL = @. -dAopn2 * exp(1im * misc.PFC.kz_omega * t)
+  AopMul = 1im .* misc.RTC.comega .^ 2 ./ 2 ./ misc.PFC.kz_omega ./ misc.NC.e0 ./ misc.NC.c0 .^ 2
+
+  return zscanInput(dAop_lin .- dAopNL .* AopMul, Y.ASH)
 end

@@ -88,6 +88,7 @@ end
 end
 
 @kwdef struct runTimeConstantsZSCAN
+  kxMax::Float64
   cx::Array{Float64,2}
   d_eff::Float64
   dOmega::Float64
