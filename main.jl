@@ -4,12 +4,12 @@ using LazyGrids, FFTW, FourierTools, Base.Threads, Dates, HDF5
 
 #default(levels=100)
 #gr()
+include("typedefs.jl")
 include("valtozok.jl")
 include("gauss_impulzus.jl")
 include("diffegy_megoldo.jl")
 include("differencial_egyenletek.jl")
 include("fuggvenyek.jl")
-include("typedefs.jl")
 
 function runcalc()
   inputs = userinputs()
@@ -64,7 +64,7 @@ function runcalc()
 
 
   E0 = sqrt(2 * inputs.I0 / neo(lambda0, 300, inputs.cry) / e0 / c0)
-  gaussInput = gaussVars(E0, ct, inputs.sigma_t, cx, inputs.sigma_x, omega0, inputs.gamma, lambda0, inputs.cry)
+  gaussInput = gaussVars(E0, ct, inputs.sigma_t, cx, inputs.sigma_x, omega0, 0, lambda0, inputs.cry)
   #  Axt = gauss_impulzus_omega0(E0, inputs.sigma_t, inputs.sigma_x, lambda0, inputs.gamma, ct, cx)
   Axt = gauss_impulzus_omega0(gaussInput)
 
@@ -75,7 +75,7 @@ function runcalc()
   alpha = aTHzo(comegaTHz, 300, inputs.cry)
   padding = zeros(inputs.Nt, inputs.Nx)
   #fast_conv_plan, fast_conv_fft_plan = plan_fast_conv(Axt, Axt, padding)
-  RTC = runTimeConstants(kxMax, cx, d_eff, khi_eff, dOmega, padding, SHG_SHIFT, ckx, comega, comegaTHz, comegaSHG, omegaMax, lambda0, omega0, inputs.cry)
+  RTC = runTimeConstantsZSCAN(cx=cx, d_eff=d_eff, dOmega=dOmega, padding=padding, SHG_SHIFT=SHG_SHIFT, ckx=ckx, comega=comega, comegaSHG=comegaSHG, omegaMax=omegaMax, lambda0=lambda0, omega0=omega0, cry=inputs.cry)
   PFC = pumpFieldConstants(kz_omega=k_omega)
   SFC = SHFieldConstants(kz_omegaSHG=k_omegaSHG)
 
@@ -84,17 +84,17 @@ function runcalc()
 
   misc = miscInputs(FOPS, naturalConstants(), RTC, PFC, SFC)
 
-  Axo = fftshift(FOPS.fft_t_o * Axt, 1) ./ omegaMax 
+  Axo = fftshift(FOPS.fft_t_o * Axt, 1) ./ omegaMax
   Akxo = fftshift(FOPS.fft_x_kx * Axo / kxMax, 2)
   z = Array{Float64}(undef, floor(Int, inputs.z_end / inputs.dz))
   ASH = copy(zeros(size(Akxo)))
 
-  A_kompozit = compositeInput(Akxo, ASH)
+  A_kompozit = zscanInput(Akxo, ASH)
 
   z[1] = 0
 
   for ii in 1:(length(z)-1)
-    A_kompozit, z[ii+1] = RK4M(z_scan_SHG, z[ii], A_kompozit, inputs.dz, misc)
+    A_kompozit, z[ii+1] = RK4M(z_scan_MPA, z[ii], A_kompozit, inputs.dz, misc)
     display(ii)
   end
 end

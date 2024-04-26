@@ -29,12 +29,11 @@ include("typedefs.jl")
 #  return userinputs(Nx,Nt,cry,sigma_t,sigma_x,lambda0,I0,STR,gamma,dz,z_end,x,t)
 #end
 
-@enum CRYSTAL LN = 0 ZnTe = 2 GaAs = 4
 
 @kwdef struct userinputs
   Nx::Int = 512
   Nt::Int = 512
-  cry::Int = GaAs
+  cry::Int = Int(GaAs)
   sigma_t::Float64 = 1e-12
   sigma_x::Float64 = 1e-3
   lambda0::Float64 = 1030e-9

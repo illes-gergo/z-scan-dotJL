@@ -1,5 +1,7 @@
 import Base.+, Base.*, Base./
 
+@enum CRYSTAL LN = 0 ZnTe = 2 GaAs = 4
+
 @kwdef struct gaussVars
   E0::Float64
   t::Array{Float64,2}
@@ -50,11 +52,8 @@ end
 end
 
 @kwdef struct naturalConstants
-  e0::Float64
-  c0::Float64
-  function naturalConstants()
-    new(8.854187817e-12, 3e8)
-  end
+  e0::Float64 = 8.854187817e-12
+  c0::Float64 = 3e8
 end
 
 @kwdef struct pumpFieldConstants
@@ -88,10 +87,48 @@ end
   cry::Int
 end
 
+@kwdef struct runTimeConstantsZSCAN
+  cx::Array{Float64,2}
+  d_eff::Float64
+  dOmega::Float64
+  padding::Array{Float64,2}
+  SHG_SHIFT::Int
+  ckx::Array{Float64,2}
+  comega::Array{Float64,2}
+  comegaSHG::Array{Float64,2}
+  omegaMax::Float64
+  lambda0::Float64
+  omega0::Float64
+  cry::Int
+end
+
 @kwdef struct miscInputs
   FOPS::fourierOperations
   NC::naturalConstants
-  RTC::runTimeConstants
+  RTC::runTimeConstantsZSCAN
   PFC::pumpFieldConstants
   SFC::SHFieldConstants
+end
+
+@kwdef struct zscanInput
+  Akxo::Array{ComplexF64}
+  ASH::Array{ComplexF64}
+end
+
+function *(a::Number, b::zscanInput)
+  b.Akxo .*= a
+  b.ASH .*= a
+  return b
+end
+
+function +(a::zscanInput, b::zscanInput)
+  a.Akxo .+= b.Akxo
+  a.ASH .+= b.ASH
+  return a
+end
+
+function /(b::zscanInput, a::Number)
+  b.Akxo ./= a
+  b.ASH ./= a
+  return b
 end

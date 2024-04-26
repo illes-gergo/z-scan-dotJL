@@ -5,6 +5,11 @@ function imp_terjedes(t, Y, PFC::pumpFieldConstants, RTC::runTimeConstants)
   return dAdz
 end
 
+function imp_terjedes_coll(t, Y, PFC::pumpFieldConstants, RTC::runTimeConstantsZSCAN)
+  dAdz = +1im .* RTC.ckx .^ 2 ./ 2 ./ PFC.kz_omega .* Y
+  return dAdz
+end
+
 function imp_terjedesSH(t, Y, SFC::SHFieldConstants, RTC::runTimeConstants)
   dAdz = -1im .* SFC.kx_omegaSHG .* RTC.ckx ./ SFC.kz_omegaSHG .* Y + 1im .* RTC.ckx .^ 2 ./ 2 ./ SFC.kz_omegaSHG .* Y
   return dAdz
@@ -30,6 +35,14 @@ function thz_egyszeru(t, Y)
 end
 
 function plan_fast_conv(a, b, RT::runTimeConstants)
+  a_ = vcat(RT.padding, a)
+  b_ = vcat(b, RT.padding)
+  _, fast_conv_plan = FourierTools.plan_conv(a_, b_, 1)
+  fast_conv_fft_plan = plan_fft(b_, 1)
+  return fast_conv_plan, fast_conv_fft_plan
+end
+
+function plan_fast_conv(a, b, RT::runTimeConstantsZSCAN)
   a_ = vcat(RT.padding, a)
   b_ = vcat(b, RT.padding)
   _, fast_conv_plan = FourierTools.plan_conv(a_, b_, 1)
@@ -129,7 +142,7 @@ function SH_OP_INTERACTION(t, Aop, ASH, misc::miscInputs)
   Eop = @spawn misc.FOPS.ifft_kx_x * ifftshift(Aop, 2) * misc.RTC.kxMax .* exp.(-1im .* misc.PFC.kx_omega .* misc.RTC.cx - 1im .* misc.PFC.kz_omega .* t)
   ESH = @spawn misc.FOPS.ifft_kx_x * ifftshift(ASH, 2) * misc.RTC.kxMax .* exp.(-1im .* misc.SFC.kx_omegaSHG .* misc.RTC.cx - 1im .* misc.SFC.kz_omegaSHG .* t)
   wait.([Eop, ESH])
-  conv_part = fast_forward_convolution_SHG(ESH.result, conj(Eop.result),misc.RTC,misc.FOPS) * misc.NC.e0 * misc.RTC.d_eff * misc.RTC.dOmega
+  conv_part = fast_forward_convolution_SHG(ESH.result, conj(Eop.result), misc.RTC, misc.FOPS) * misc.NC.e0 * misc.RTC.d_eff * misc.RTC.dOmega
 
   return fftshift(misc.FOPS.fft_x_kx * (conv_part .* exp.(+1im .* misc.PFC.kx_omega .* misc.RTC.cx)) ./ misc.RTC.kxMax, 2)
 end
@@ -160,4 +173,10 @@ function thz_feedback_n2_SHG(t, Y::compositeInput, misc::miscInputs)
   wait.([sum_dAop, dTHz_gen, dAop_lin, dASHlin])
   return compositeInput(dAop_lin.result .- sum_dAop.result .* 1im .* misc.RTC.comega .^ 2 ./ 2 ./ misc.PFC.kz_omega ./ misc.NC.e0 ./ misc.NC.c0 .^ 2,
     dTHz_gen.result, dASHlin.result .- dASHNL.result .* 1im .* misc.RTC.comegaSHG .^ 2 ./ 2 ./ misc.SFC.kz_omegaSHG ./ misc.NC.e0 ./ misc.NC.c0 .^ 2)
+end
+
+function z_scan_MPA(t, Y::zscanInput, misc::miscInputs)
+  dAop_lin = imp_terjedes_coll(t, Y.Akxo, misc.PFC, misc.RTC)
+
+  return zscanInput(dAop_lin, Y.ASH)
 end
