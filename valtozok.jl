@@ -33,7 +33,7 @@ include("typedefs.jl")
 @kwdef struct userinputs
   Nx::Int = 512
   Nt::Int = 512
-  cry::Int = Int(GaAs)
+  cry::Int = Int(LT)
   sigma_t::Float64 = 1e-12
   sigma_x::Float64 = 1e-3
   lambda0::Float64 = 1030e-9

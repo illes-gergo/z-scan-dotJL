@@ -1,6 +1,6 @@
 import Base.+, Base.*, Base./
 
-@enum CRYSTAL LN = 0 ZnTe = 2 GaAs = 4
+@enum CRYSTAL LN = 0 LT = 1 ZnTe = 2 GaAs = 4
 
 @kwdef struct gaussVars
   E0::Float64
@@ -100,6 +100,10 @@ end
   lambda0::Float64
   omega0::Float64
   cry::Int
+  m_eff::Float64
+  Erinf::Float64
+  tsc::Float64
+  n2::Float64
 end
 
 @kwdef struct miscInputs

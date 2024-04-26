@@ -15,8 +15,8 @@ function runcalc()
   inputs = userinputs()
 
   c0 = 3e8
-  khi_eff = 2 * deffTHz(inputs.cry)
-  d_eff = deff(inputs.cry)
+  #d_eff = deff(inputs.cry)
+  d_eff = 0
   e0 = 8.854187817e-12
 
   SHG_SHIFT = floor(Int, inputs.Nt / 4)
@@ -42,7 +42,6 @@ function runcalc()
   omega0 = omega_diff .* dOmega
   lambda0 = 2 * pi * c0 / omega0
 
-
   (ct, cx) = ndgrid(inputs.t, inputs.x)
   (comega_, ckx) = ndgrid(omega, kx)
 
@@ -62,25 +61,25 @@ function runcalc()
 
   k_omegaSHG = neo(cLambdaSHG, 300, inputs.cry) .* comegaSHG ./ c0
 
+  if inputs.cry == 1
+    m_eff = 0.098
+    Erinf = 4.9
+    tsc = 500e-15
+    n2 = n2_wld(lambda0, inputs.cry)
+  else
+    error("Current material not implemented")
+  end
 
   E0 = sqrt(2 * inputs.I0 / neo(lambda0, 300, inputs.cry) / e0 / c0)
   gaussInput = gaussVars(E0, ct, inputs.sigma_t, cx, inputs.sigma_x, omega0, 0, lambda0, inputs.cry)
-  #  Axt = gauss_impulzus_omega0(E0, inputs.sigma_t, inputs.sigma_x, lambda0, inputs.gamma, ct, cx)
   Axt = gauss_impulzus_omega0(gaussInput)
 
-  #=  fft_t_o = plan_fft(Axt, 1)
-    fft_x_kx = plan_fft(Axt, 2)
-    ifft_o_t = plan_ifft(Axt, 1)
-    ifft_kx_x = plan_ifft(Axt, 2) =#
-  alpha = aTHzo(comegaTHz, 300, inputs.cry)
   padding = zeros(inputs.Nt, inputs.Nx)
-  #fast_conv_plan, fast_conv_fft_plan = plan_fast_conv(Axt, Axt, padding)
-  RTC = runTimeConstantsZSCAN(cx=cx, d_eff=d_eff, dOmega=dOmega, padding=padding, SHG_SHIFT=SHG_SHIFT, ckx=ckx, comega=comega, comegaSHG=comegaSHG, omegaMax=omegaMax, lambda0=lambda0, omega0=omega0, cry=inputs.cry)
+  RTC = runTimeConstantsZSCAN(cx=cx, d_eff=d_eff, dOmega=dOmega, padding=padding, SHG_SHIFT=SHG_SHIFT, ckx=ckx, comega=comega, comegaSHG=comegaSHG, omegaMax=omegaMax, lambda0=lambda0, omega0=omega0, cry=inputs.cry, m_eff=m_eff, Erinf=Erinf, tsc=tsc, n2=n2)
   PFC = pumpFieldConstants(kz_omega=k_omega)
   SFC = SHFieldConstants(kz_omegaSHG=k_omegaSHG)
 
   FOPS = fourierOperations(plan_fft(Axt, 1), plan_fft(Axt, 2), plan_ifft(Axt, 1), plan_ifft(Axt, 2), plan_fast_conv(Axt, Axt, RTC)...)
-
 
   misc = miscInputs(FOPS, naturalConstants(), RTC, PFC, SFC)
 
@@ -95,6 +94,8 @@ function runcalc()
 
   for ii in 1:(length(z)-1)
     A_kompozit, z[ii+1] = RK4M(z_scan_MPA, z[ii], A_kompozit, inputs.dz, misc)
-    display(ii)
+    if ii % 50 == 0
+      display(ii)
+    end
   end
 end
