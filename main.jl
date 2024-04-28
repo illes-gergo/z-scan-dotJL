@@ -81,7 +81,7 @@ function runcalc()
 
   FOPS = fourierOperations(plan_fft(Axt, 1), plan_fft(Axt, 2), plan_ifft(Axt, 1), plan_ifft(Axt, 2), plan_fast_conv(Axt, Axt, RTC)...)
 
-  misc = miscInputs(FOPS, naturalConstants(), RTC, PFC, SFC)
+  misc = miscInputs(FOPS, naturalConstants(), RTC, PFC, SFC, inputs)
 
   Axo = fftshift(FOPS.fft_t_o * Axt, 1) ./ omegaMax
   Akxo = fftshift(FOPS.fft_x_kx * Axo / kxMax, 2)

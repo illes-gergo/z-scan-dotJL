@@ -1,5 +1,7 @@
 import Base.+, Base.*, Base./
 
+include("valtozok.jl")
+
 @enum CRYSTAL LN = 0 LT = 1 ZnTe = 2 GaAs = 4
 
 @kwdef struct gaussVars
@@ -113,6 +115,7 @@ end
   RTC::runTimeConstantsZSCAN
   PFC::pumpFieldConstants
   SFC::SHFieldConstants
+  UIN::userinputs
 end
 
 @kwdef struct zscanInput
