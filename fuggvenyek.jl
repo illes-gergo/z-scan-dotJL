@@ -226,3 +226,12 @@ function visulaize_raw(raw_field)
   readline()
   return nothing
 end
+
+function zRayleigh(sigma_x, lambda0)::Float64
+  return pi * sigma_x^2 / lambda0
+end
+
+function preConditionPulse(z, Akxo, misc::miscInputs)
+  dAdz = +1im .* misc.RTC.ckx .^ 2 ./ 2 ./ misc.PFC.kz_omega
+  return Akxo .* exp.(dAdz .* z)
+end

@@ -87,12 +87,14 @@ function runcalc()
   Akxo = fftshift(FOPS.fft_x_kx * Axo / kxMax, 2)
   z = Array{Float64}(undef, floor(Int, inputs.z_end / inputs.dz))
   ASH = copy(zeros(size(Akxo)))
+  pAkxo = preConditionPulse(inputs.zRayleigh * zRayleigh(inputs.sigma_x, inputs.lambda0), Akxo, misc)
 
-  A_kompozit = zscanInput(Akxo, ASH)
+  A_kompozit = zscanInput(pAkxo, ASH)
 
   z[1] = 0
 
-  visualize_pump(0, Akxo, misc)
+  visualize_pump(0, pAkxo, misc)
+
   for ii in 1:(length(z)-1)
     A_kompozit, z[ii+1] = RK4M(z_scan_MPA, z[ii], A_kompozit, inputs.dz, misc)
     #visulaize_raw(A_kompozit.Akxo)

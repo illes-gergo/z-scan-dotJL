@@ -10,7 +10,8 @@
   dz::Float64 = 1e-6
   z_end::Float64 = 0.5e-3 + dz
   mpa_order::Int = 4
-  betaN::Float64 = 3e-59
+  betaN::Float64 = 3e-60
   x::Vector = range(-sigma_x, sigma_x, Nx) * 10
   t::Vector = range(-sigma_t, sigma_t, Nt) * 10
+  zRayleigh::Float64 = -2
 end
