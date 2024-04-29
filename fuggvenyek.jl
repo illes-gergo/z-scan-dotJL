@@ -212,8 +212,17 @@ end
 
 function visualize_pump(t, Akxo, misc::miscInputs)
   Eop = misc.FOPS.ifft_o_t * ifftshift(misc.FOPS.ifft_kx_x * ifftshift(Akxo, 2) * misc.RTC.kxMax .* exp.(-1im .* misc.PFC.kz_omega .* t), 1) * misc.RTC.omegaMax
-  Iop = abs.(Eop).^2 .* misc.NC.e0 .* misc.NC.c0 ./ 2 .* neo(misc.UIN.lambda0,300,misc.UIN.cry) ./ 1e13
-  p = plot(heatmapgl(z=Iop))
+  Iop = abs.(Eop) .^ 2 .* misc.NC.e0 .* misc.NC.c0 ./ 2 .* neo(misc.UIN.lambda0, 300, misc.UIN.cry) ./ 1e13
+  _, I = findmax(Iop)
+  Iop = circshift(Iop, (I[1] - misc.UIN.Nt / 2, 0))
+  p = plot(heatmap(z=Iop))
   display(p)
   return p
+end
+
+function visulaize_raw(raw_field)
+  p = plot(heatmap(z=abs.(raw_field)))
+  display(p)
+  readline()
+  return nothing
 end

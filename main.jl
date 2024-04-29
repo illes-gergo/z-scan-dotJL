@@ -92,13 +92,16 @@ function runcalc()
 
   z[1] = 0
 
+  visualize_pump(0, Akxo, misc)
   for ii in 1:(length(z)-1)
     A_kompozit, z[ii+1] = RK4M(z_scan_MPA, z[ii], A_kompozit, inputs.dz, misc)
-    if ii % 50 == 0
+    #visulaize_raw(A_kompozit.Akxo)
+    if ii % 250 == 0
       display(ii)
       if (sum(isnan.(A_kompozit.Akxo)) > 0)
         error("Numerical error found, aborting...")
       end
+      visualize_pump(z[ii], A_kompozit.Akxo, misc)
     end
   end
 end
