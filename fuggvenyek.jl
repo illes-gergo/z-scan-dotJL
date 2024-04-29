@@ -1,12 +1,13 @@
 using Symbolics
 using Interpolations
+using PlotlyJS
 
 function heaviside(t)
   return @. 0.5 * (sign(t) + 1)
 end
 
-function interp1(x_original::Vector,y_original::Vector,x_query::Float64)
-  itp = linear_interpolation(x_original,y_original)
+function interp1(x_original::Vector, y_original::Vector, x_query::Float64)
+  itp = linear_interpolation(x_original, y_original)
   return itp(x_query)
 end
 
@@ -199,7 +200,7 @@ function n2_wld(lambda1, cry)
   omega = collect(range(start=0.05 * Eg / hv, stop=0.95 * Eg / hv, length=N))
   lambda = @. 2 * pi * NC.c0 / omega
 
-  n2su_ =@. G2(hv * omega / Eg) / neo(lambda, 300, cry)
+  n2su_ = @. G2(hv * omega / Eg) / neo(lambda, 300, cry)
   n2_ = @. n2su_ / neo(lambda, 300, cry)^2
 
   K = n2ref / interp1(omega, n2_, omega0)
@@ -207,4 +208,12 @@ function n2_wld(lambda1, cry)
   n2 = K * n2_
   n2_1 = interp1(omega, n2, 2 * pi * NC.c0 / lambda1)
   return n2_1
+end
+
+function visualize_pump(t, Akxo, misc::miscInputs)
+  Eop = misc.FOPS.ifft_o_t * ifftshift(misc.FOPS.ifft_kx_x * ifftshift(Akxo, 2) * misc.RTC.kxMax .* exp.(-1im .* misc.PFC.kz_omega .* t), 1) * misc.RTC.omegaMax
+  Iop = abs.(Eop).^2 .* misc.NC.e0 .* misc.NC.c0 ./ 2 .* neo(misc.UIN.lambda0,300,misc.UIN.cry) ./ 1e13
+  p = plot(heatmapgl(z=Iop))
+  display(p)
+  return p
 end

@@ -96,6 +96,9 @@ function runcalc()
     A_kompozit, z[ii+1] = RK4M(z_scan_MPA, z[ii], A_kompozit, inputs.dz, misc)
     if ii % 50 == 0
       display(ii)
+      if (sum(isnan.(A_kompozit.Akxo)) > 0)
+        error("Numerical error found, aborting...")
+      end
     end
   end
 end
