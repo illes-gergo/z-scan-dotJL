@@ -235,3 +235,7 @@ function preConditionPulse(z, Akxo, misc::miscInputs)
   dAdz = +1im .* misc.RTC.ckx .^ 2 ./ 2 ./ misc.PFC.kz_omega
   return Akxo .* exp.(dAdz .* z)
 end
+
+function calcTransmission(start, finish)
+  return dropdims(sum(abs.(finish) .^ 2, dims=(1, 2)) / sum(abs.(start) .^ 2, dims=(1, 2)), dims=2)[1]
+end

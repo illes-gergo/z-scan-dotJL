@@ -11,8 +11,8 @@ include("diffegy_megoldo.jl")
 include("differencial_egyenletek.jl")
 include("fuggvenyek.jl")
 
-function runcalc()
-  inputs = userinputs()
+function runcalc(;zR)
+  inputs = userinputs(zRayleigh = zR)
 
   c0 = 3e8
   #d_eff = deff(inputs.cry)
@@ -89,21 +89,21 @@ function runcalc()
   ASH = copy(zeros(size(Akxo)))
   pAkxo = preConditionPulse(inputs.zRayleigh * zRayleigh(inputs.sigma_x, inputs.lambda0), Akxo, misc)
 
-  A_kompozit = zscanInput(pAkxo, ASH)
+  A_kompozit = zscanInput(copy(pAkxo), ASH)
 
   z[1] = 0
 
-  visualize_pump(0, pAkxo, misc)
 
   for ii in 1:(length(z)-1)
     A_kompozit, z[ii+1] = RK4M(z_scan_MPA, z[ii], A_kompozit, inputs.dz, misc)
     #visulaize_raw(A_kompozit.Akxo)
-    if ii % 250 == 0
-      display(ii)
+    if ii % 50 == 0
       if (sum(isnan.(A_kompozit.Akxo)) > 0)
         error("Numerical error found, aborting...")
       end
-      visualize_pump(z[ii], A_kompozit.Akxo, misc)
     end
   end
+  trans = calcTransmission(pAkxo, A_kompozit.Akxo)
+  return trans
 end
+
