@@ -5,7 +5,7 @@
   sigma_t::Float64 = 50e-15
   sigma_x::Float64 = 35e-6
   lambda0::Float64 = 800e-9
-  I0::Float64 = 100e13
+  I0::Float64 = 200e13
   STR::String = "test_calculation"
   dz::Float64 = 1e-6
   z_end::Float64 = 0.5e-3 + dz
